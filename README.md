@@ -1,61 +1,136 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# GestorDoméstico
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![GestorDoméstico Logo/Banner](https://via.placeholder.com/800x200/667EEA/FFFFFF?text=GestorDomestico+-+Tu+Control+Financiero)
+**Slogan:** *Toma el control de tus finanzas personales con facilidad y claridad.*
 
-## About Laravel
+## 🌟 Introducción
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+GestorDoméstico es una aplicación web intuitiva diseñada para ayudarte a gestionar tus finanzas personales de manera eficiente. Registra tus ingresos y gastos, categoriza tus transacciones y visualiza tu situación financiera a través de un dashboard interactivo con gráficos y filtros.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✨ Características Principales
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* **Registro y Gestión de Transacciones:** Añade, edita y elimina ingresos y gastos con facilidad.
+* **Categorización Personalizada:** Organiza tus movimientos financieros usando categorías definidas por ti (Ingresos, Gastos).
+* **Dashboard Interactivo:**
+    * Visualiza un gráfico de tus transacciones (ingresos, gastos, balance) a lo largo del tiempo.
+    * Filtra los datos del gráfico por rango de fechas, categoría y tipo de transacción.
+    * Obtén un resumen rápido de tus ingresos, gastos y balance actual.
+* **Recomendaciones Financieras:** Recibe consejos básicos basados en tu patrón de gastos y balance.
+* **Autenticación Segura:** Sistema de registro y login de usuarios protegido por Laravel Breeze.
+* **Interfaz Responsiva:** Accede a tus finanzas desde cualquier dispositivo (desktop, tablet, móvil).
 
-## Learning Laravel
+## 🚀 Tecnologías Utilizadas
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+* **Backend:**
+    * PHP 8.3.16
+    * Laravel 10.x / 11.x (compatible con la versión 12.17.0 que estás usando)
+    * Composer
+    * MySQL (Base de Datos)
+* **Frontend:**
+    * HTML, CSS, JavaScript
+    * Tailwind CSS (para el diseño y la responsividad)
+    * Chart.js (para la visualización de gráficos)
+    * Moment.js (dependencia de Chart.js para manejo de fechas)
+    * Axios (para peticiones AJAX en el dashboard)
+* **Herramientas:**
+    * Git (Control de Versiones)
+    * NPM / Yarn (Manejo de paquetes frontend)
+    * Vite (Bundler frontend)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 📦 Instalación
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Sigue estos pasos para configurar el proyecto localmente:
 
-## Laravel Sponsors
+### Prerrequisitos
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Asegúrate de tener instalado en tu sistema:
 
-### Premium Partners
+* PHP >= 8.2
+* Composer
+* Node.js & npm (o Yarn)
+* Un servidor web (Apache, Nginx) o PHP's built-in server
+* MySQL o una base de datos compatible
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Pasos
 
-## Contributing
+1.  **Clona el repositorio:**
+    ```bash
+    git clone [https://github.com/tu_usuario/GestorDomestico.git](https://github.com/tu_usuario/GestorDomestico.git)
+    cd GestorDomestico
+    ```
+    *(Reemplaza `tu_usuario/GestorDomestico.git` con la URL de tu repositorio de GitHub después de crearlo)*
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+2.  **Instala las dependencias de Composer:**
+    ```bash
+    composer install
+    ```
 
-## Code of Conduct
+3.  **Copia el archivo de entorno:**
+    ```bash
+    cp .env.example .env
+    ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+4.  **Genera la clave de aplicación:**
+    ```bash
+    php artisan key:generate
+    ```
 
-## Security Vulnerabilities
+5.  **Configura la base de datos:**
+    Abre el archivo `.env` y configura tus credenciales de base de datos (DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    ```dotenv
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=gestordomestico_db # O el nombre de tu base de datos
+    DB_USERNAME=root
+    DB_PASSWORD= # Tu contraseña de MySQL, si tienes
+    ```
 
-## License
+6.  **Ejecuta las migraciones de la base de datos:**
+    ```bash
+    php artisan migrate
+    ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+7.  **Instala las dependencias de Node.js:**
+    ```bash
+    npm install
+    # o
+    yarn install
+    ```
+
+8.  **Compila los assets frontend:**
+    * Para desarrollo (con Hot Reload):
+        ```bash
+        npm run dev
+        # o
+        yarn dev
+        ```
+    * Para producción:
+        ```bash
+        npm run build
+        # o
+        yarn build
+        ```
+
+9.  **Inicia el servidor de desarrollo de Laravel:**
+    ```bash
+    php artisan serve
+    ```
+
+    Tu aplicación estará disponible en `http://127.0.0.1:8000` (o el puerto que te indique la consola).
+
+## 💡 Uso
+
+1.  **Regístrate:** Navega a `/register` y crea una nueva cuenta.
+2.  **Inicia Sesión:** Una vez registrado, inicia sesión para acceder a tu dashboard personal.
+3.  **Gestiona Transacciones:** Ve a la sección de "Transacciones" para añadir, ver, editar o eliminar tus ingresos y gastos.
+4.  **Explora el Dashboard:** Utiliza los filtros de fecha, categoría y tipo en el dashboard para analizar tus finanzas y ver los gráficos actualizados.
+
+## 🤝 Contribuciones
+
+Las contribuciones son bienvenidas. Si deseas mejorar el proyecto, por favor, abre un "issue" o envía un "pull request".
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.

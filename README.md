@@ -55,10 +55,11 @@ Asegúrate de tener instalado en tu sistema:
 
 1.  **Clona el repositorio:**
     ```bash
-    git clone [https://github.com/tu_usuario/GestorDomestico.git](https://github.com/tu_usuario/GestorDomestico.git)
+    git clone [https://github.com/Gestordomestico/GestorDomestico.git](https://github.com/Gestordomestico/GestorDomestico.git)
     cd GestorDomestico
     ```
-    *(Reemplaza `tu_usuario/GestorDomestico.git` con la URL de tu repositorio de GitHub después de crearlo)*
+	
+    
 
 2.  **Instala las dependencias de Composer:**
     ```bash

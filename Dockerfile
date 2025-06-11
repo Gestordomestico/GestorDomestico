@@ -42,6 +42,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www/html
 
 COPY . .
+# AÑADE ESTA LÍNEA AQUÍ PARA COPIAR LA CONFIGURACIÓN DE NGINX
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 RUN composer install --no-dev --optimize-autoloader --prefer-dist
 

@@ -18,10 +18,13 @@ RUN apk add --no-cache \
     build-base \
     autoconf \
     g++ \
+    # ¡AQUÍ ESTÁ LA CORRECCIÓN! Agrega oniguruma-dev
+    oniguruma-dev \
     # Limpia la caché de APK para reducir el tamaño de la imagen
     && rm -rf /var/cache/apk/*
 
 # Instala extensiones de PHP requeridas por Laravel y para la conexión a PostgreSQL
+# La línea del error era esta, pero el problema real era la falta de la dependencia del sistema
 RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd \
     && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
     && rm -rf /tmp/* /usr/share/doc/*

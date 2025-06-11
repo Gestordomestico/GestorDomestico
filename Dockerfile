@@ -1,100 +1,60 @@
-# Stage 1: Build dependencies and assets
-FROM php:8.2-fpm-alpine as builder
+# Usa una imagen base de PHP-FPM para Laravel con PHP 8.3 (Alpine para ser ligera)
+FROM php:8.3-fpm-alpine
 
-# Install PHP extensions and dependencies
+# Instala dependencias del sistema operativo necesarias para Laravel, Nginx y PostgreSQL
 RUN apk add --no-cache \
     nginx \
-    php-json \
-    php-pdo_mysql \
-    php-mysqli \
-    php-zip \
-    php-gd \
-    php-mbstring \
-    php-xml \
-    php-tokenizer \
-    php-ctype \
-    php-session \
-    php-dom \
-    php-exif \
-    php-fileinfo \
-    php-openssl \
-    php-bcmath \
-    php-opcache \
-    php-pecl-redis \
-    php-pcntl \
-    php-posix \
-    php-simplexml \
-    php-xmlreader \
-    php-xmlwriter \
-    php-iconv \
-    php-curl \
-    php-phar \
-    php-common \
-    php-session \
-    php-gd \
-    php-intl \
-    php-fileinfo \
-    php-zip \
-    php-sodium \
-    php-tokenizer \
-    php-xml \
-    php-xmlreader \
-    php-xmlwriter \
-    php-iconv \
-    php-opcache \
-    php-xdebug \
-    php-curl \
-    php-bcmath \
-    php-gmp \
-    php-pdo_pgsql \
-    php-pdo_sqlite # Add php-pdo_pgsql if using PostgreSQL
+    postgresql-dev \
+    git \
+    zip \
+    unzip \
+    nodejs \
+    npm \
+    libpng \
+    libjpeg-turbo \
+    libwebp \
+    freetype \
+    icu-dev \
+    build-base \
+    autoconf \
+    g++ \
+    # Limpia la caché de APK para reducir el tamaño de la imagen
+    && rm -rf /var/cache/apk/*
 
-# Install Composer
-COPY --from=composer/composer:latest-bin /composer /usr/bin/composer
+# Instala extensiones de PHP requeridas por Laravel y para la conexión a PostgreSQL
+RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd \
+    && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
+    && rm -rf /tmp/* /usr/share/doc/*
 
-# Install Node.js and npm
-RUN apk add --no-cache nodejs npm
+# Instala Composer globalmente en el contenedor
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
-# Set working directory
-WORKDIR /app
+# Establece el directorio de trabajo dentro del contenedor
+WORKDIR /var/www/html
 
-# Copy composer.json and package.json first to leverage Docker cache
-COPY composer.json composer.lock ./
-COPY package.json package-lock.json ./
-
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
-
-# Install Node.js dependencies and build assets
-RUN npm install && npm run build
-
-# Copy the application code
+# Copia los archivos de tu aplicación Laravel al contenedor
 COPY . .
 
-# Ensure storage permissions for Laravel
-RUN chmod -R 775 storage bootstrap/cache && \
-    chown -R www-data:www-data storage bootstrap/cache
+# Instala las dependencias de Composer (solo de producción y optimizadas)
+RUN composer install --no-dev --optimize-autoloader --prefer-dist
 
-# Stage 2: Production ready image
-FROM php:8.2-fpm-alpine
+# Compila los assets de frontend (CSS/JS) si usas Laravel Mix o Vite
+# Si ya los tienes compilados o no usas Node.js, puedes omitir estas líneas.
+RUN npm install \
+    && npm run build # O 'npm run production' si usas Laravel Mix
 
-# Install Nginx
-RUN apk add --no-cache nginx
+# Ejecuta las migraciones de la base de datos
+# ¡IMPORTANTE! Esto se ejecuta durante la construcción de la imagen.
+# Asegúrate de que tu aplicación pueda manejar esto (ej. no fallar si las tablas ya existen).
+# Esto es crucial para despliegues en entornos sin acceso a la shell.
+RUN php artisan migrate --force
 
-# Copy PHP-FPM configuration
-COPY --from=builder /etc/php82/php-fpm.d/www.conf /etc/php82/php-fpm.d/www.conf
+# Configura los permisos de los directorios de almacenamiento y caché de Laravel
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-# Copy Nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+# Expone el puerto de PHP-FPM
+EXPOSE 9000
 
-# Set working directory
-WORKDIR /app
-
-# Copy application code from builder stage
-COPY --from=builder /app /app
-
-# Expose port 80 (Nginx default)
-EXPOSE 80
-
-# Command to run Nginx and PHP-FPM
-CMD php-fpm -D && nginx -g 'daemon off;'
+# Comando para iniciar el servicio PHP-FPM cuando el contenedor se inicie
+CMD ["php-fpm"]

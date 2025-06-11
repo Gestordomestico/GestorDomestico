@@ -18,16 +18,21 @@ RUN apk add --no-cache \
     build-base \
     autoconf \
     g++ \
-    # ¡AQUÍ ESTÁ LA CORRECCIÓN! Agrega oniguruma-dev
     oniguruma-dev \
+    # ¡NUEVAS ADICIONES/VERIFICACIONES AQUÍ!
+    libxml2-dev \          # Frecuentemente necesario para varias extensiones
+    libzip-dev \           # Necesario para la extensión Zip (útil para Composer)
+    # Algunas veces, para GD avanzado o Exif, se necesita ImageMagick
+    # imagemagick-dev \ # Descomenta si los problemas persisten con imágenes/exif
+
     # Limpia la caché de APK para reducir el tamaño de la imagen
     && rm -rf /var/cache/apk/*
 
 # Instala extensiones de PHP requeridas por Laravel y para la conexión a PostgreSQL
-# La línea del error era esta, pero el problema real era la falta de la dependencia del sistema
-RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd \
+RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd zip \
     && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
     && rm -rf /tmp/* /usr/share/doc/*
+    # Nota: Agregué 'zip' aquí, ya que incluimos 'libzip-dev'
 
 # Instala Composer globalmente en el contenedor
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
@@ -47,9 +52,6 @@ RUN npm install \
     && npm run build # O 'npm run production' si usas Laravel Mix
 
 # Ejecuta las migraciones de la base de datos
-# ¡IMPORTANTE! Esto se ejecuta durante la construcción de la imagen.
-# Asegúrate de que tu aplicación pueda manejar esto (ej. no fallar si las tablas ya existen).
-# Esto es crucial para despliegues en entornos sin acceso a la shell.
 RUN php artisan migrate --force
 
 # Configura los permisos de los directorios de almacenamiento y caché de Laravel

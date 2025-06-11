@@ -42,7 +42,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www/html
 
 COPY . .
-# AÑADE ESTA LÍNEA AQUÍ PARA COPIAR LA CONFIGURACIÓN DE NGINX
+
+# ¡NUEVA LÍNEA AQUÍ! Elimina la configuración por defecto de Nginx
+RUN rm -f /etc/nginx/conf.d/default.conf || true
+
+# Copia el archivo de configuración de Nginx personalizado
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 RUN composer install --no-dev --optimize-autoloader --prefer-dist

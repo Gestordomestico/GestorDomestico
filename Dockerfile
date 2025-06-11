@@ -1,7 +1,7 @@
 # Usa una imagen base de PHP-FPM para Laravel con PHP 8.3 (Alpine para ser ligera)
 FROM php:8.3-fpm-alpine
 
-# Instala dependencias del sistema operativo necesarias para Laravel, Nginx y PostgreSQL
+# Instala dependencias del sistema operativo necesarias
 RUN apk add --no-cache \
     nginx \
     postgresql-dev \
@@ -19,19 +19,22 @@ RUN apk add --no-cache \
     autoconf \
     g++ \
     oniguruma-dev \
-    # ¡CORRECCIÓN DE SINTAXIS AQUÍ! Asegúrate de que no haya comentarios en la misma línea que '\'
     libxml2-dev \
     libzip-dev \
-    # Algunas veces, para GD avanzado o Exif, se necesita ImageMagick
-    # imagemagick-dev \
-
-    # Limpia la caché de APK para reducir el tamaño del tamaño de la imagen
+    # ¡NUEVA ADICIÓN AQUÍ! zlib-dev es una dependencia muy común
+    zlib-dev \
+    # Elimina la caché de APK para reducir el tamaño de la imagen
     && rm -rf /var/cache/apk/*
 
-# Instala extensiones de PHP requeridas por Laravel y para la conexión a PostgreSQL
-RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd zip \
-    && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
-    && rm -rf /tmp/* /usr/share/doc/*
+# Instala y configura extensiones de PHP
+# Separamos la instalación de la configuración de GD para mayor claridad y depuración
+RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath zip
+# Configuración específica para GD después de la instalación
+RUN docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype
+RUN docker-php-ext-install gd
+
+# Limpieza después de la instalación de extensiones (opcionalmente)
+RUN rm -rf /tmp/* /usr/share/doc/*
 
 # Instala Composer globalmente en el contenedor
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
@@ -56,7 +59,7 @@ RUN php artisan migrate --force
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Expone el puerto de PHP-FPM
+# Exponer el puerto de PHP-FPM
 EXPOSE 9000
 
 # Comando para iniciar el servicio PHP-FPM cuando el contenedor se inicie

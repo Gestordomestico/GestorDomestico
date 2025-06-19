@@ -1,21 +1,30 @@
-MIT License
+LICENCIA DE USO NO COMERCIAL (GestorDoméstico)
 
-Copyright (c) 2025 Gestordomestico
+Copyright (c) 2024 Gestordomestico
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Este software (GestorDoméstico) se proporciona "tal cual", sin garantía de ningún tipo, expresa o implícita,
+incluyendo, entre otras, las garantías de comerciabilidad, idoneidad para un propósito particular y
+no infracción. En ningún caso los autores o los titulares de los derechos de autor serán responsables
+de ninguna reclamación, daños u otra responsabilidad, ya sea en una acción de contrato, agravio o de
+otra manera, que surja de o en conexión con el software o el uso o cualquier otra transacción en
+el software.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Se concede permiso, de forma gratuita, a cualquier persona que obtenga una copia de este software
+y los archivos de documentación asociados (el "Software"), para usar, estudiar, modificar y
+distribuir el Software **ÚNICAMENTE PARA FINES NO COMERCIALES Y PERSONALES**.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Las siguientes condiciones deben ser incluidas en todas las copias o partes sustanciales del Software:
+
+1. El aviso de copyright anterior y este aviso de permiso deben incluirse en
+   todas las copias o partes sustanciales del Software.
+
+2. **La distribución, sublicencia o venta de este Software, modificado o sin modificar,
+   CON FINES COMERCIALES está estrictamente PROHIBIDA, EXCEPTO BAJO UN ACUERDO DE LICENCIA COMERCIAL
+   ESCRITO Y FIRMADO CON EL TITULAR ORIGINAL DEL COPYRIGHT (Gestordomestico).**
+
+Este Software se proporciona para uso personal, educativo y de código fuente disponible.
+Cualquier uso, reproducción o distribución con fines comerciales sin un acuerdo
+explícito y por escrito con el titular del copyright constituye una violación
+de esta licencia.
+
+Para consultas sobre licencias comerciales, por favor contacta a Gestordomestico a través de los medios disponibles en el repositorio de GitHub.

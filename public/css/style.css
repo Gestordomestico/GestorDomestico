@@ -1,0 +1,61 @@
+/* public/css/style.css */
+body {
+    background-color: #f8f9fa;
+}
+.card {
+    margin-bottom: 1.5rem;
+}
+.balance-card .card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.balance-amount {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+.income-text {
+    color: #28a745; /* Bootstrap green */
+}
+.expense-text {
+    color: #dc3545; /* Bootstrap red */
+}
+.balance-text-positive {
+    color: #28a745;
+}
+.balance-text-negative {
+    color: #dc3545;
+}
+.chart-container {
+    position: relative;
+    height: 40vh;
+    width: 80vw;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+.chart-container canvas {
+    max-width: 100%;
+    height: auto;
+}
+.login-card, .register-card {
+    max-width: 400px;
+    width: 100%;
+}
+
+/* Nuevos estilos para la lista de categorías */
+.category-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0; /* Aumenta el padding para mejor visualización */
+    border-bottom: 1px solid #eee;
+}
+.category-list-item:last-child {
+    border-bottom: none;
+}
+.category-list-item .badge {
+    font-size: 0.85em; /* Ligeramente más grande */
+}

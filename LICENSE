@@ -1,30 +1,39 @@
-LICENCIA DE USO NO COMERCIAL (GestorDoméstico)
+Licencia MIT - Uso Académico y No Comercial Exclusivo del Autor (Versión Extendida)
 
-Copyright (c) 2024 Gestordomestico
+Copyright (c) 2025 GestorDomestico
 
-Este software (GestorDoméstico) se proporciona "tal cual", sin garantía de ningún tipo, expresa o implícita,
-incluyendo, entre otras, las garantías de comerciabilidad, idoneidad para un propósito particular y
-no infracción. En ningún caso los autores o los titulares de los derechos de autor serán responsables
-de ninguna reclamación, daños u otra responsabilidad, ya sea en una acción de contrato, agravio o de
-otra manera, que surja de o en conexión con el software o el uso o cualquier otra transacción en
-el software.
+La presente Licencia (en adelante, la "Licencia") es un acuerdo legal entre el autor original del Software, GestorDomestico (en adelante, el "Autor"), y cualquier persona o entidad (en adelante, el "Licenciatario") que obtenga una copia de este software y los archivos de documentación asociados (en adelante, el "Software").
 
-Se concede permiso, de forma gratuita, a cualquier persona que obtenga una copia de este software
-y los archivos de documentación asociados (el "Software"), para usar, estudiar, modificar y
-distribuir el Software **ÚNICAMENTE PARA FINES NO COMERCIALES Y PERSONALES**.
+Por la presente, el Autor otorga al Licenciatario el permiso, sin cargo, para usar, copiar, modificar, fusionar, publicar, distribuir, sublicenciar y/o vender copias del Software, siempre y cuando se cumplan las siguientes condiciones, que son esenciales para la validez de este acuerdo:
 
-Las siguientes condiciones deben ser incluidas en todas las copias o partes sustanciales del Software:
+1.  **Uso No Comercial Restringido:**
+    El Software solo puede ser utilizado para fines estrictamente académicos, de investigación, educativos o personales. Esto incluye, pero no se limita a, su uso en proyectos universitarios, tesis, estudios de caso, aprendizaje personal o experimentación técnica. Cualquier uso que implique un intercambio de valor, directa o indirectamente, o que genere un beneficio económico para el Licenciatario o terceros, se considera uso comercial. Queda **expresamente prohibido y sin excepciones** el uso comercial del Software por cualquier persona o entidad que no sea el Autor original.
 
-1. El aviso de copyright anterior y este aviso de permiso deben incluirse en
-   todas las copias o partes sustanciales del Software.
+2.  **Uso Comercial Exclusivo del Autor:**
+    El Autor original del Software, GestorDomestico, se reserva explícita y exclusivamente todos los derechos de explotación, licencia, distribución y uso comercial del Software en cualquier forma o por cualquier medio. Cualquier intento de uso comercial por parte de terceros (incluyendo la venta, licencia, prestación de servicios basados en el Software con fines de lucro, integración en productos comerciales, o cualquier otra actividad generadora de ingresos) sin una licencia explícita, separada y por escrito emitida por el Autor, será considerado una violación de los términos de esta Licencia y de los derechos de propiedad intelectual del Autor.
 
-2. **La distribución, sublicencia o venta de este Software, modificado o sin modificar,
-   CON FINES COMERCIALES está estrictamente PROHIBIDA, EXCEPTO BAJO UN ACUERDO DE LICENCIA COMERCIAL
-   ESCRITO Y FIRMADO CON EL TITULAR ORIGINAL DEL COPYRIGHT (Gestordomestico).**
+3.  **Mantenimiento del Aviso de Copyright y Permiso:**
+    El aviso de copyright completo (Copyright (c) 2025 GestorDomestico) y la totalidad de los términos de esta Licencia y aviso de permiso deberán incluirse en todas las copias o porciones sustanciales del Software, tanto en formato de código fuente como en binario o cualquier otra forma de distribución. La omisión de este aviso o de cualquiera de las condiciones de la Licencia anulará los permisos otorgados.
 
-Este Software se proporciona para uso personal, educativo y de código fuente disponible.
-Cualquier uso, reproducción o distribución con fines comerciales sin un acuerdo
-explícito y por escrito con el titular del copyright constituye una violación
-de esta licencia.
+4.  **Exclusión de Garantías (DISCLAIMER):**
+    EL SOFTWARE SE PROPORCIONA "TAL CUAL ES", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O IMPLÍCITA, INCLUYENDO PERO NO LIMITADO A LAS GARANTÍAS DE COMERCIABILIDAD, IDONEIDAD PARA UN PROPÓSITO PARTICULAR Y NO INFRACCIÓN DE DERECHOS DE TERCEROS. EL AUTOR NO GARANTIZA QUE EL SOFTWARE ESTÉ LIBRE DE ERRORES, QUE SU FUNCIONAMIENTO SEA ININTERRUMPIDO O QUE CUMPLA CON LAS EXPECTATIVAS ESPECÍFICAS DEL LICENCIATARIO.
 
-Para consultas sobre licencias comerciales, por favor contacta a Gestordomestico a través de los medios disponibles en el repositorio de GitHub.
+5.  **Limitación de Responsabilidad:**
+    EN NINGÚN CASO EL AUTOR, O LOS TITULARES DE LOS DERECHOS DE AUTOR AQUÍ MENCIONADOS, SERÁN RESPONSABLES DE NINGUNA RECLAMACIÓN, DAÑO O CUALQUIER OTRA RESPONSABILIDAD, YA SEA EN UNA ACCIÓN DE CONTRATO, AGRAVIO (INCLUIDA LA NEGLIGENCIA) O DE OTRO TIPO, QUE SURJA DE, FUERA DE O EN CONEXIÓN CON EL SOFTWARE O EL USO U OTRO TIPO DE NEGOCIACIONES EN EL SOFTWARE. ESTA LIMITACIÓN DE RESPONSABILIDAD SE APLICA INCLUENDO, PERO NO LIMITÁNDOSE A, PÉRDIDA DE DATOS, PÉRDIDA DE BENEFICIOS, INTERRUPCIÓN DEL NEGOCIO O CUALQUIER OTRO DAÑO COMERCIAL.
+
+6.  **Resolución de Disputas y Jurisdicción:**
+    Cualquier disputa que surja de o en relación con esta Licencia o el Software se resolverá de acuerdo con las leyes de la **República de Colombia**. Las partes acuerdan someterse a la jurisdicción exclusiva de los tribunales de **Cartagena, Bolívar, Colombia**, para la resolución de cualquier disputa.
+
+7.  **Terminación de la Licencia:**
+    Esta Licencia se terminará automáticamente si el Licenciatario incumple cualquiera de sus términos y condiciones. Tras la terminación, el Licenciatario debe cesar inmediatamente todo uso del Software y destruir todas las copias del mismo en su posesión.
+
+8.  **Separabilidad:**
+    Si alguna disposición de esta Licencia se considera inválida o inaplicable por un tribunal de jurisdicción competente, dicha disposición se interpretará de la manera que mejor refleje la intención original de las partes, y la validez y aplicabilidad de las disposiciones restantes de la Licencia no se verán afectadas.
+
+9.  **No Renuncia de Derechos:**
+    La inacción del Autor para hacer cumplir estrictamente cualquier término o condición de esta Licencia no se interpretará como una renuncia a tal término o condición, ni afectará de ninguna manera el derecho del Autor a hacer cumplir dicho término o condición en el futuro.
+
+10. **Acuerdo Completo:**
+    Esta Licencia constituye el acuerdo completo entre el Autor y el Licenciatario con respecto al uso del Software y reemplaza todos los acuerdos, entendimientos y representaciones anteriores o contemporáneos, ya sean orales o escritos.
+
+---

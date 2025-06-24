@@ -1,237 +1,533 @@
 // public/js/app.js
+// Ubicación: C:\laragon\www\gestor_domestico_mvp\public\js\app.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    const API_BASE_URL = 'api/';
+    // IMPORTANTE: Esta URL debe coincidir con la base_path de tu public/index.php y config.php
+    const BASE_URL = '/gestor_domestico_mvp/public';
 
-    const transactionForm = document.getElementById('transactionForm');
-    const typeSelect = document.getElementById('type');
-    const categorySelect = document.getElementById('category');
-    const amountInput = document.getElementById('amount');
-    const dateInput = document.getElementById('date');
-    const descriptionInput = document.getElementById('description');
-    const transactionsTableBody = document.getElementById('transactionsTableBody');
-    const totalIncomeElem = document.getElementById('totalIncome');
-    const totalExpenseElem = document.getElementById('totalExpense');
-    const currentBalanceElem = document.getElementById('currentBalance');
-    const expensesChartCanvas = document.getElementById('expensesChart');
-    const incomeChartCanvas = document.getElementById('incomeChart');
-    const noExpensesDataElem = document.getElementById('noExpensesData');
-    const noIncomeDataElem = document.getElementById('noIncomeData');
+    // Elementos del DOM para mensajes y listados
+    const messageDiv = document.getElementById('dashboard-message');
+    const transactionsList = document.getElementById('transactions-list');
+    const addTransactionForm = document.getElementById('add-transaction-form');
+    const logoutBtn = document.getElementById('logout-btn');
 
-    const dashboardSection = document.getElementById('dashboardSection');
-    const categoriesSection = document.getElementById('categoriesSection');
-    const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+    // Elementos para resumen
+    const totalIncomeSpan = document.getElementById('total-income');
+    const totalExpenseSpan = document.getElementById('total-expense');
+    const balanceSpan = document.getElementById('balance');
+    const reportStartDateInput = document.getElementById('report-start-date');
+    const reportEndDateInput = document.getElementById('report-end-date');
+    const applyDateFilterBtn = document.getElementById('apply-date-filter');
 
-    let expensesChartInstance = null;
-    let incomeChartInstance = null;
-    let allCategories = [];
+    // Elementos para categorías y autocompletado
+    const transactionCategoryInput = document.getElementById('transaction-category');
+    const transactionTypeSelect = document.getElementById('transaction-type');
+    const addCategoryForm = document.getElementById('add-category-form');
+    const newCategoryNameInput = document.getElementById('new-category-name');
+    const newCategoryTypeSelect = document.getElementById('new-category-type');
+    const currentCategoriesList = document.getElementById('current-categories-list');
 
-    const formatCurrency = (amount) => `$${parseFloat(amount).toFixed(2)}`;
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.value = today;
-
-    const showSection = (sectionId) => {
-        dashboardSection.classList.add('d-none');
-        categoriesSection.classList.add('d-none');
-
-        navLinks.forEach(link => link.classList.remove('active'));
-
-        if (sectionId === 'dashboardSection') {
-            dashboardSection.classList.remove('d-none');
-            document.querySelector('a[href="#dashboardSection"]').classList.add('active');
-            loadTransactionsAndSummary();
-        } else if (sectionId === 'categoriesSection') {
-            categoriesSection.classList.remove('d-none');
-            document.querySelector('a[href="#categoriesSection"]').classList.add('active');
-            if (typeof window.loadAndDisplayCategories === 'function') {
-                window.loadAndDisplayCategories();
-            }
+    // --- Función para manejar las respuestas de la API y posibles errores de autenticación ---
+    async function handleApiResponse(response) {
+        if (response.status === 401) { // Error de No Autorizado (ej. sesión expirada)
+            const errorData = await response.json();
+            // Usamos sessionStorage para pasar mensajes a la página de login
+            sessionStorage.setItem('login_message', errorData.message || 'Tu sesión ha expirado o no estás autorizado. Por favor, inicia sesión de nuevo.');
+            window.location.href = `${BASE_URL}/login`; // Redirigir a la URL de login enmascarada
+            // Lanzar un error para detener la ejecución de las funciones que llamaron a handleApiResponse
+            return Promise.reject('Unauthorized');
         }
-    };
-
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const sectionId = e.target.getAttribute('href').substring(1);
-            showSection(sectionId);
-        });
-    });
-
-    fetch(`${API_BASE_URL}transactions.php`)
-        .then(response => {
-            if (response.status === 401) {
-                window.location.href = 'login.html';
-                return Promise.reject('No autenticado');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const loggedInUsername = localStorage.getItem('loggedInUsername');
-            if (loggedInUsername) {
-                document.getElementById('loggedInUser').textContent = loggedInUsername;
-            } else {
-                document.getElementById('loggedInUser').textContent = 'Usuario';
-            }
-            loadCategoriesForForm();
-            loadTransactionsAndSummary();
-            showSection('dashboardSection');
-        })
-        .catch(error => {
-            console.error('Error de autenticación o carga inicial del dashboard:', error);
-        });
-
-    const loadCategoriesForForm = async (forceReload = false) => {
-        if (allCategories.length === 0 || forceReload) {
-            try {
-                const response = await fetch(`${API_BASE_URL}categories.php`);
-                if (response.status === 401) { window.location.href = 'login.html'; return; }
-                allCategories = await response.json();
-            } catch (error) {
-                console.error('Error al cargar categorías para el formulario:', error);
-                return;
-            }
+        if (!response.ok) { // Otros errores HTTP (400, 500, etc.)
+            const errorData = await response.json();
+            // Lanzar un error con el mensaje de la API o un mensaje genérico
+            throw new Error(errorData.message || 'Error en la solicitud API.');
         }
-        filterCategoriesForForm();
-    };
+        return response.json(); // Devolver los datos JSON si la respuesta fue exitosa
+    }
 
-    const filterCategoriesForForm = () => {
-        const selectedType = typeSelect.value;
-        categorySelect.innerHTML = '<option value="">Seleccione una categoría</option>';
-        allCategories
-            .filter(cat => cat.type === selectedType)
-            .forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat.name;
-                option.textContent = cat.name;
-                categorySelect.appendChild(option);
-            });
-        if (categorySelect.options.length > 1) {
-            categorySelect.value = categorySelect.options[1].value;
+    // --- Funciones de Utilidad ---
+
+    // Función para mostrar mensajes al usuario en el dashboard
+    function displayMessage(message, type) { // 'success' o 'error'
+        if (!messageDiv) {
+            console.warn("Elemento 'dashboard-message' no encontrado.");
+            return;
+        }
+        messageDiv.textContent = message;
+        messageDiv.className = ''; // Limpiar clases anteriores
+
+        if (type === 'success') {
+            messageDiv.style.color = 'green';
+            messageDiv.style.backgroundColor = '#ddffdd';
+            messageDiv.style.border = '1px solid #aaffaa';
+        } else if (type === 'error') {
+            messageDiv.style.color = 'red';
+            messageDiv.style.backgroundColor = '#ffdddd';
+            messageDiv.style.border = '1px solid #ffaaaa';
         } else {
-            categorySelect.value = '';
+            messageDiv.style.cssText = ''; // Limpiar estilos si no hay tipo específico
         }
-    };
+        messageDiv.style.opacity = '1'; // Asegurarse de que sea visible
 
-    typeSelect.addEventListener('change', filterCategoriesForForm);
+        setTimeout(() => {
+            messageDiv.style.opacity = '0'; // Desvanecer
+            setTimeout(() => {
+                messageDiv.textContent = '';
+                messageDiv.style.cssText = ''; // Eliminar estilos inline después de desvanecer
+            }, 500); // Esperar a que la transición termine
+        }, 5000); // Mostrar por 5 segundos
+    }
 
-    document.addEventListener('categoriesUpdated', () => {
-        loadCategoriesForForm(true);
-    });
+    // Función para escapar HTML para prevenir XSS al mostrar datos de usuario
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
 
-    const loadTransactionsAndSummary = async () => {
+    // --- Funciones de Transacciones ---
+
+    // Obtener y mostrar transacciones
+    async function fetchTransactions(startDate = '', endDate = '') {
         try {
-            const transactionsResponse = await fetch(`${API_BASE_URL}transactions.php`);
-            if (transactionsResponse.status === 401) { window.location.href = 'login.html'; return; }
-            const transactions = await transactionsResponse.json();
+            let url = `${BASE_URL}/api/transactions`;
+            const params = new URLSearchParams();
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (params.toString()) url += `?${params.toString()}`;
 
-            const reportsResponse = await fetch(`${API_BASE_URL}reports.php`);
-            if (reportsResponse.status === 401) { window.location.href = 'login.html'; return; }
-            const reportsData = await reportsResponse.json();
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await handleApiResponse(response); // Esto manejará la redirección 401 si ocurre
 
-            transactionsTableBody.innerHTML = '';
-            if (transactions.length === 0) {
-                transactionsTableBody.innerHTML = '<tr><td colspan="5" class="text-center">No hay transacciones aún.</td></tr>';
+            if (data.success) {
+                renderTransactions(data.transactions);
+                fetchSummary(startDate, endDate); // Actualizar resumen después de cargar transacciones
+                fetchCategorySummary(startDate, endDate); // Actualizar resumen por categoría
             } else {
-                transactions.forEach(t => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${t.date}</td>
-                        <td><span class="badge bg-${t.type === 'income' ? 'success' : 'danger'}">${t.type === 'income' ? 'Ingreso' : 'Gasto'}</span></td>
-                        <td>${t.category}</td>
-                        <td class="${t.type === 'income' ? 'income-text' : 'expense-text'}">${formatCurrency(t.amount)}</td>
-                        <td>${t.description || '-'}</td>
-                    `;
-                    transactionsTableBody.appendChild(row);
-                });
+                displayMessage(data.message, 'error');
             }
-
-            totalIncomeElem.textContent = formatCurrency(reportsData.summary.total_income);
-            totalExpenseElem.textContent = formatCurrency(reportsData.summary.total_expense);
-            currentBalanceElem.textContent = formatCurrency(reportsData.summary.balance);
-            currentBalanceElem.className = 'card-text balance-amount';
-            if (reportsData.summary.balance >= 0) {
-                currentBalanceElem.classList.add('balance-text-positive');
-            } else {
-                currentBalanceElem.classList.add('balance-text-negative');
-            }
-
-            renderCharts(reportsData.expense_by_category, reportsData.income_by_category);
-
         } catch (error) {
-            console.error('Error al cargar datos del dashboard:', error);
+            if (error !== 'Unauthorized') { // Si el error no es por no autorizado (ya manejado)
+                displayMessage(`Error al cargar transacciones: ${error.message}`, 'error');
+                console.error('Error fetching transactions:', error);
+            }
         }
-    };
+    }
 
-    transactionForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // Renderizar transacciones en la lista
+    function renderTransactions(transactions) {
+        if (!transactionsList) return;
 
-        if (!typeSelect.value || !categorySelect.value || !amountInput.value || !dateInput.value) {
-            alert('Por favor, complete todos los campos obligatorios.');
+        transactionsList.innerHTML = ''; // Limpiar lista
+        if (transactions.length === 0) {
+            transactionsList.innerHTML = '<p class="info-message">No hay transacciones para mostrar en este rango de fechas.</p>';
             return;
         }
-        if (parseFloat(amountInput.value) <= 0) {
-            alert('El monto debe ser un número positivo.');
-            return;
-        }
 
-        const newTransaction = {
-            type: typeSelect.value,
-            category: categorySelect.value,
-            amount: parseFloat(amountInput.value),
-            date: dateInput.value,
-            description: descriptionInput.value
-        };
+        transactions.forEach(t => {
+            const li = document.createElement('li');
+            li.className = `transaction-item ${escapeHtml(t.type)}`;
+            li.dataset.id = escapeHtml(t.id); // Usar dataset para almacenar IDs
 
+            li.innerHTML = `
+                <div class="transaction-info">
+                    <span class="transaction-date">${escapeHtml(t.date)}</span>
+                    <span class="transaction-category">${escapeHtml(t.category)}</span>
+                    <span class="transaction-description">${escapeHtml(t.description || 'Sin descripción')}</span>
+                </div>
+                <div class="transaction-amount">
+                    ${t.type === 'income' ? '+' : '-'} $${parseFloat(t.amount).toFixed(2)}
+                </div>
+                <div class="transaction-actions">
+                    <button class="delete-btn" data-id="${escapeHtml(t.id)}">Eliminar</button>
+                </div>
+            `;
+            transactionsList.appendChild(li);
+        });
+
+        // Añadir listeners para los botones de eliminar después de renderizar
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const id = e.target.dataset.id;
+                if (confirm('¿Estás seguro de que quieres eliminar esta transacción? Esta acción es irreversible.')) {
+                    deleteTransaction(id);
+                }
+            });
+        });
+    }
+
+    // Añadir una transacción
+    async function addTransaction(transactionData) {
         try {
-            const response = await fetch(`${API_BASE_URL}transactions.php`, {
+            const response = await fetch(`${BASE_URL}/api/transactions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newTransaction)
+                body: JSON.stringify(transactionData)
             });
+            const data = await handleApiResponse(response);
 
-            const result = await response.json();
-
-            if (response.ok) {
-                alert('Transacción guardada con éxito.');
-                transactionForm.reset();
-                dateInput.value = today;
-                typeSelect.dispatchEvent(new Event('change'));
-                loadTransactionsAndSummary();
-            } else if (response.status === 401) {
-                window.location.href = 'login.html';
+            if (data.success) {
+                displayMessage(data.message, 'success');
+                fetchTransactions(reportStartDateInput.value, reportEndDateInput.value); // Recargar con filtros actuales
+                addTransactionForm.reset(); // Limpiar formulario
+                // Restablecer la fecha actual para la siguiente transacción después del reset
+                if (addTransactionForm && addTransactionForm['transaction-date']) {
+                    addTransactionForm['transaction-date'].valueAsDate = new Date();
+                }
             } else {
-                alert(`Error al guardar transacción: ${result.error || 'Mensaje desconocido'}`);
+                displayMessage(`Error al añadir transacción: ${data.message}` + (data.errors ? ' ' + data.errors.join(', ') : ''), 'error');
             }
         } catch (error) {
-            console.error('Error al enviar transacción:', error);
-            alert('No se pudo guardar la transacción. Verifique la conexión.');
+            if (error !== 'Unauthorized') {
+                displayMessage(`Error de conexión o API al añadir transacción: ${error.message}`, 'error');
+                console.error('Error adding transaction:', error);
+            }
         }
-    });
+    }
 
-    const renderCharts = (expenseData, incomeData) => {
-        if (expensesChartInstance) expensesChartInstance.destroy();
-        if (incomeChartInstance) incomeChartInstance.destroy();
-
-        if (expenseData && expenseData.length > 0) {
-            noExpensesDataElem.style.display = 'none';
-            expensesChartCanvas.style.display = 'block';
-            expensesChartInstance = new Chart(expensesChartCanvas, {
-                type: 'pie', data: {
-                    labels: expenseData.map(d => d.category),
-                    datasets: [{ data: expenseData.map(d => d.total), backgroundColor: ['#dc3545', '#ffc107', '#17a2b8', '#fd7e14', '#6f42c1', '#20c997', '#e83e8c', '#6c757d'], hoverOffset: 4 }]
-                }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', }, title: { display: true, text: 'Distribución de Gastos' } } }
+    // Eliminar una transacción
+    async function deleteTransaction(id) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/transactions?id=${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
             });
-        } else { noExpensesDataElem.style.display = 'block'; expensesChartCanvas.style.display = 'none'; }
+            const data = await handleApiResponse(response);
 
-        if (incomeData && incomeData.length > 0) {
-            noIncomeDataElem.style.display = 'none';
-            incomeChartCanvas.style.display = 'block';
-            incomeChartInstance = new Chart(incomeChartCanvas, {
-                type: 'doughnut', data: {
-                    labels: incomeData.map(d => d.category),
-                    datasets: [{ data: incomeData.map(d => d.total), backgroundColor: ['#28a745', '#007bff', '#6610f2', '#ffc107', '#17a2b8'], hoverOffset: 4 }]
-                }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', }, title: { display: true, text: 'Distribución de Ingresos' } } }
+            if (data.success) {
+                displayMessage(data.message, 'success');
+                fetchTransactions(reportStartDateInput.value, reportEndDateInput.value); // Recargar con filtros actuales
+            } else {
+                displayMessage(`Error al eliminar transacción: ${data.message}`, 'error');
+            }
+        } catch (error) {
+            if (error !== 'Unauthorized') {
+                displayMessage(`Error de conexión o API al eliminar transacción: ${error.message}`, 'error');
+                console.error('Error deleting transaction:', error);
+            }
+        }
+    }
+
+    // --- Funciones para Reportes / Resumen ---
+
+    async function fetchSummary(startDate = '', endDate = '') {
+        try {
+            let url = `${BASE_URL}/api/reports?action=summary`;
+            const params = new URLSearchParams();
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            if (params.toString()) url += `&${params.toString()}`; // Usar '&' porque 'action' ya es un parámetro
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
             });
-        } else { noIncomeDataElem.style.display = 'block'; incomeChartCanvas.style.display = 'none'; }
-    };
+            const data = await handleApiResponse(response);
+
+            if (data.success) {
+                if (totalIncomeSpan) totalIncomeSpan.textContent = parseFloat(data.summary.total_income).toFixed(2);
+                if (totalExpenseSpan) totalExpenseSpan.textContent = parseFloat(data.summary.total_expense).toFixed(2);
+                if (balanceSpan) {
+                    const balance = parseFloat(data.summary.balance).toFixed(2);
+                    balanceSpan.textContent = balance;
+                    // Cambiar color del balance basado en si es positivo o negativo
+                    balanceSpan.style.color = balance >= 0 ? '#34A853' : '#EA4335';
+                }
+            } else {
+                displayMessage(`Error al cargar resumen: ${data.message}`, 'error');
+            }
+        } catch (error) {
+            if (error !== 'Unauthorized') {
+                displayMessage(`Error de conexión o API al cargar resumen: ${error.message}`, 'error');
+                console.error('Error fetching summary:', error);
+            }
+        }
+    }
+
+    async function fetchCategorySummary(startDate = '', endDate = '') {
+        try {
+            const params = new URLSearchParams();
+            if (startDate) params.append('start_date', startDate);
+            if (endDate) params.append('end_date', endDate);
+            const queryString = params.toString();
+
+            // Fetch income categories summary
+            let incomeUrl = `${BASE_URL}/api/reports?action=category_summary&type=income`;
+            if (queryString) incomeUrl += `&${queryString}`;
+
+            const incomeResponse = await fetch(incomeUrl);
+            const incomeData = await handleApiResponse(incomeResponse);
+
+            // Fetch expense categories summary
+            let expenseUrl = `${BASE_URL}/api/reports?action=category_summary&type=expense`;
+            if (queryString) expenseUrl += `&${queryString}`;
+
+            const expenseResponse = await fetch(expenseUrl);
+            const expenseData = await handleApiResponse(expenseResponse);
+
+            const expensesByCategoryList = document.getElementById('expenses-by-category-list');
+            const incomeByCategoryList = document.getElementById('income-by-category-list');
+
+            if (expensesByCategoryList) {
+                expensesByCategoryList.innerHTML = '';
+                if (expenseData.success && expenseData.category_summary && expenseData.category_summary.length > 0) {
+                    expenseData.category_summary.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = `${escapeHtml(item.category)}: $${parseFloat(item.total_amount).toFixed(2)}`;
+                        expensesByCategoryList.appendChild(li);
+                    });
+                } else {
+                    expensesByCategoryList.innerHTML = '<li class="info-message">No hay gastos por categoría en este rango.</li>';
+                }
+            }
+
+            if (incomeByCategoryList) {
+                incomeByCategoryList.innerHTML = '';
+                if (incomeData.success && incomeData.category_summary && incomeData.category_summary.length > 0) {
+                    incomeData.category_summary.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = `${escapeHtml(item.category)}: $${parseFloat(item.total_amount).toFixed(2)}`;
+                        incomeByCategoryList.appendChild(li);
+                    });
+                } else {
+                    incomeByCategoryList.innerHTML = '<li class="info-message">No hay ingresos por categoría en este rango.</li>';
+                }
+            }
+
+        } catch (error) {
+            if (error !== 'Unauthorized') {
+                displayMessage(`Error al cargar resumen por categoría: ${error.message}`, 'error');
+                console.error('Error fetching category summary:', error);
+            }
+        }
+    }
+
+    // --- Funciones para Categorías ---
+
+    async function fetchCategories() {
+        try {
+            const response = await fetch(`${BASE_URL}/api/categories`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await handleApiResponse(response);
+
+            if (data.success) {
+                populateCategoryDatalist(data.categories);
+                renderCurrentCategories(data.categories); // Renderiza la lista para gestionar
+            } else {
+                displayMessage(`Error al cargar categorías: ${data.message}`, 'error');
+            }
+        } catch (error) {
+            if (error !== 'Unauthorized') {
+                displayMessage(`Error de conexión o API al cargar categorías: ${error.message}`, 'error');
+                console.error('Error fetching categories:', error);
+            }
+        }
+    }
+
+    // Rellena el datalist para el input de categoría de transacciones
+    function populateCategoryDatalist(categories) {
+        if (!transactionCategoryInput || !transactionTypeSelect) return;
+
+        let datalist = document.getElementById('categories-datalist');
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = 'categories-datalist';
+            transactionCategoryInput.setAttribute('list', 'categories-datalist');
+            document.body.appendChild(datalist);
+        }
+        datalist.innerHTML = ''; // Limpiar opciones anteriores
+
+        const selectedType = transactionTypeSelect.value;
+        const filteredCategories = categories.filter(cat => cat.type === selectedType);
+
+        filteredCategories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = escapeHtml(cat.name); // Escapar el nombre de la categoría
+            datalist.appendChild(option);
+        });
+    }
+
+    // Renderiza la lista de categorías existentes para gestión
+    function renderCurrentCategories(categories) {
+        if (!currentCategoriesList) return;
+        currentCategoriesList.innerHTML = '';
+        if (categories.length === 0) {
+            currentCategoriesList.innerHTML = '<li class="info-message">No hay categorías definidas.</li>';
+            return;
+        }
+
+        categories.forEach(cat => {
+            const li = document.createElement('li');
+            li.dataset.id = escapeHtml(cat.id);
+            li.innerHTML = `
+                <span>${escapeHtml(cat.name)} (${cat.type === 'income' ? 'Ingreso' : 'Gasto'})</span>
+                <button class="delete-category-btn" data-id="${escapeHtml(cat.id)}">Eliminar</button>
+            `;
+            currentCategoriesList.appendChild(li);
+        });
+
+        // Añadir listeners para los botones de eliminar categoría
+        document.querySelectorAll('.delete-category-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const id = e.target.dataset.id;
+                if (confirm('¿Estás seguro de que quieres eliminar esta categoría? Las transacciones asociadas también serán eliminadas.')) {
+                    await deleteCategory(id);
+                }
+            });
+        });
+    }
+
+    // Añadir una nueva categoría
+    async function addCategory(name, type) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/categories`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, type })
+            });
+            const data = await handleApiResponse(response);
+
+            if (data.success) {
+                displayMessage(data.message, 'success');
+                newCategoryNameInput.value = ''; // Limpiar el campo
+                fetchCategories(); // Recargar la lista de categorías y el datalist
+            } else {
+                displayMessage(`Error al añadir categoría: ${data.message}` + (data.errors ? ' ' + data.errors.join(', ') : ''), 'error');
+            }
+        } catch (error) {
+            if (error !== 'Unauthorized') {
+                displayMessage(`Error de conexión o API al añadir categoría: ${error.message}`, 'error');
+                console.error('Error adding category:', error);
+            }
+        }
+    }
+
+    // Eliminar una categoría existente
+    async function deleteCategory(id) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/categories?id=${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await handleApiResponse(response);
+
+            if (data.success) {
+                displayMessage(data.message, 'success');
+                fetchCategories(); // Recargar la lista de categorías y el datalist
+                fetchTransactions(reportStartDateInput.value, reportEndDateInput.value); // Recargar transacciones por si alguna fue eliminada
+            } else {
+                displayMessage(`Error al eliminar categoría: ${data.message}`, 'error');
+            }
+        } catch (error) {
+            if (error !== 'Unauthorized') {
+                displayMessage(`Error de conexión o API al eliminar categoría: ${error.message}`, 'error');
+                console.error('Error deleting category:', error);
+            }
+        }
+    }
+
+    // --- Inicialización y Event Listeners ---
+
+    // Inicializar al cargar la página (solo si es el dashboard)
+    const isDashboardPage = window.location.pathname.includes('/dashboard') || window.location.pathname === `${BASE_URL}/` || window.location.pathname === `${BASE_URL}/index.php`;
+
+    if (isDashboardPage) {
+        fetchTransactions(); // Cargar transacciones iniciales y resumen
+        fetchCategories(); // Cargar categorías para el formulario y gestión
+
+        // Establecer la fecha actual por defecto al cargar el formulario de transacción
+        if (addTransactionForm && addTransactionForm['transaction-date']) {
+            addTransactionForm['transaction-date'].valueAsDate = new Date();
+        }
+    }
+
+    // Listener para el formulario de añadir transacción
+    if (addTransactionForm) {
+        addTransactionForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const type = addTransactionForm['transaction-type'].value;
+            const category = addTransactionForm['transaction-category'].value.trim(); // Trim para limpiar espacios
+            const amount = addTransactionForm['transaction-amount'].value; // Deja como string para que el backend valide float
+            const description = addTransactionForm['transaction-description'].value.trim();
+            const date = addTransactionForm['transaction-date'].value;
+
+            // Simple validación de frontend para una UX más rápida
+            if (!type || !category || !amount || parseFloat(amount) <= 0 || !date) {
+                displayMessage('Por favor, completa todos los campos requeridos para la transacción y asegúrate de que el monto sea un número positivo.', 'error');
+                return;
+            }
+
+            const transactionData = { type, category, amount, description, date };
+            await addTransaction(transactionData);
+        });
+    }
+
+    // Listener para el botón de cierre de sesión
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            if (!confirm('¿Estás seguro de que quieres cerrar tu sesión?')) {
+                return;
+            }
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'logout' })
+                });
+                const data = await handleApiResponse(response);
+
+                if (data.success) {
+                    // Si el logout fue exitoso, redirigir al login
+                    window.location.href = `${BASE_URL}/login`;
+                } else {
+                    displayMessage(`Error al cerrar sesión: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                if (error !== 'Unauthorized') {
+                    displayMessage(`Error de conexión al cerrar sesión: ${error.message}`, 'error');
+                    console.error('Error logging out:', error);
+                }
+                // Si es un error de "Unauthorized", handleApiResponse ya redirigió
+            }
+        });
+    }
+
+    // Listener para el botón de aplicar filtro de fechas
+    if (applyDateFilterBtn) {
+        applyDateFilterBtn.addEventListener('click', () => {
+            const startDate = reportStartDateInput.value;
+            const endDate = reportEndDateInput.value;
+            fetchTransactions(startDate, endDate); // Esto también refresca el summary y category summary
+        });
+    }
+
+    // Event listener para cambiar las categorías del datalist cuando cambia el tipo de transacción
+    if (transactionTypeSelect) {
+        transactionTypeSelect.addEventListener('change', fetchCategories); // Vuelve a cargar y filtrar datalist
+    }
+
+    // Listener para el formulario de añadir categoría
+    if (addCategoryForm) {
+        addCategoryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = newCategoryNameInput.value.trim();
+            const type = newCategoryTypeSelect.value;
+
+            if (!name || !type) {
+                displayMessage('El nombre y el tipo de categoría son obligatorios.', 'error');
+                return;
+            }
+            if (name.length < 2 || name.length > 50) {
+                 displayMessage('El nombre de la categoría debe tener entre 2 y 50 caracteres.', 'error');
+                 return;
+            }
+
+            await addCategory(name, type);
+        });
+    }
 });

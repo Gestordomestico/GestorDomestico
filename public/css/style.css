@@ -1,61 +1,476 @@
 /* public/css/style.css */
+
+/* Fuentes y Estilos Generales */
 body {
-    background-color: #f8f9fa;
-}
-.card {
-    margin-bottom: 1.5rem;
-}
-.balance-card .card-body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5; /* Un gris muy suave para el fondo */
+    color: #333;
+    line-height: 1.6;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.balance-amount {
-    font-size: 2.5rem;
-    font-weight: bold;
-}
-.income-text {
-    color: #28a745; /* Bootstrap green */
-}
-.expense-text {
-    color: #dc3545; /* Bootstrap red */
-}
-.balance-text-positive {
-    color: #28a745;
-}
-.balance-text-negative {
-    color: #dc3545;
-}
-.chart-container {
-    position: relative;
-    height: 40vh;
-    width: 80vw;
-    margin: auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
-}
-.chart-container canvas {
-    max-width: 100%;
-    height: auto;
-}
-.login-card, .register-card {
-    max-width: 400px;
-    width: 100%;
+    min-height: 100vh; /* Asegura que el body ocupe al menos toda la altura de la vista */
 }
 
-/* Nuevos estilos para la lista de categorías */
-.category-list-item {
+.container {
+    width: 95%;
+    max-width: 1000px; /* Límite de ancho para pantallas grandes */
+    margin: 20px auto;
+    background-color: #ffffff;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Sombra más pronunciada pero suave */
+    border-radius: 12px; /* Bordes más redondeados */
+    box-sizing: border-box;
+    flex-grow: 1; /* Permite que el contenedor principal se expanda */
+}
+
+/* Encabezado */
+.header {
+    background-color: #4285F4; /* Azul vibrante (inspirado en Material Design) */
+    color: #fff;
+    padding: 15px 25px;
+    text-align: center;
+    margin-bottom: 30px;
+    border-radius: 0; /* Sin bordes redondeados arriba */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 0; /* Aumenta el padding para mejor visualización */
-    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-.category-list-item:last-child {
-    border-bottom: none;
+
+.header h1 {
+    margin: 0;
+    font-size: 2em;
+    font-weight: 300; /* Fuente más ligera para un toque moderno */
 }
-.category-list-item .badge {
-    font-size: 0.85em; /* Ligeramente más grande */
+
+/* Navegación */
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex; /* Menú horizontal */
+    justify-content: center;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+}
+
+nav ul li {
+    margin: 0 15px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+nav ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+}
+
+/* Botones */
+button, .button-like { /* Agregado .button-like para consistencia si hay elementos que se comportan como botón */
+    background-color: #34A853; /* Verde de Google para acciones positivas */
+    color: white;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: inline-flex; /* Para centrar texto e iconos si se añaden */
+    align-items: center;
+    justify-content: center;
+}
+
+button:hover, .button-like:hover {
+    background-color: #2E8B4C;
+    transform: translateY(-1px);
+}
+
+/* Botones específicos (eliminar) */
+.delete-btn, .delete-category-btn {
+    background-color: #EA4335; /* Rojo de Google para acciones destructivas */
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+
+.delete-btn:hover, .delete-category-btn:hover {
+    background-color: #C5221F;
+}
+
+/* Inputs y Selects */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+select {
+    width: calc(100% - 24px); /* Ajuste para padding */
+    padding: 12px;
+    margin-bottom: 18px;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus {
+    border-color: #4285F4;
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+    outline: none;
+}
+
+form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+}
+
+/* Mensajes de feedback */
+#auth-message, #dashboard-message {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    font-weight: bold;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+#auth-message[style*="red"], #dashboard-message[style*="red"] {
+    background-color: #fde0e0;
+    border: 1px solid #fbc4c4;
+    color: #cc0000;
+}
+#auth-message[style*="green"], #dashboard-message[style*="green"] {
+    background-color: #e0f2e0;
+    border: 1px solid #c4fbc4;
+    color: #008000;
+}
+
+/* Títulos de sección */
+h2 {
+    color: #4285F4;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 12px;
+    margin-top: 35px;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+    font-weight: 400;
+}
+
+h3 {
+    color: #666;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    font-weight: 400;
+}
+
+/* Sección de Resumen */
+#summary-section p {
+    font-size: 1.15em;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+}
+
+#summary-section p strong { /* Para las etiquetas de "Total Ingresos:" */
+    min-width: 150px;
+    text-align: left;
+}
+
+#summary-section span {
+    font-weight: 700; /* Más audaz */
+    font-size: 1.2em;
+}
+
+#total-income {
+    color: #34A853; /* Verde para ingresos */
+}
+
+#total-expense {
+    color: #EA4335; /* Rojo para gastos */
+}
+
+#balance {
+    color: #4285F4; /* Azul para balance */
+}
+
+/* Filtros de Fecha */
+.filter-dates {
+    margin-top: 25px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.filter-dates label {
+    margin-bottom: 0;
+    margin-right: 5px;
+    color: #555;
+    font-weight: 600;
+    white-space: nowrap; /* Evita que la etiqueta se rompa */
+}
+
+.filter-dates input[type="date"] {
+    flex-grow: 1;
+    min-width: 160px;
+    margin-bottom: 0;
+}
+
+.filter-dates button {
+    flex-shrink: 0;
+    margin-left: auto; /* Empuja el botón a la derecha en la misma fila */
+    padding: 10px 18px; /* Ajuste para el botón del filtro */
+    font-size: 0.95em;
+}
+
+/* Lista de Transacciones */
+#transactions-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transaction-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.transaction-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    margin-right: 15px; /* Espacio antes del monto */
+}
+
+.transaction-date {
+    font-size: 0.85em;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.transaction-category {
+    font-weight: 700;
+    color: #333;
+    font-size: 1.15em;
+}
+
+.transaction-description {
+    font-size: 0.95em;
+    color: #666;
+    margin-top: 4px;
+}
+
+.transaction-amount {
+    font-weight: 700;
+    font-size: 1.3em;
+    min-width: 120px;
+    text-align: right;
+    padding-left: 10px;
+}
+
+.transaction-actions {
+    margin-left: 20px;
+    display: flex; /* Para alinear botones de acción */
+    gap: 8px; /* Espacio entre botones */
+}
+
+/* Sección de Gestión de Categorías */
+#add-category-form {
+    display: flex;
+    flex-wrap: wrap; /* Permitir que los elementos se envuelvan */
+    gap: 15px; /* Espacio entre elementos del formulario */
+    margin-bottom: 30px;
+    align-items: flex-end; /* Alinea los elementos al final */
+}
+
+#add-category-form > div { /* Contenedor para label e input */
+    flex: 1; /* Permite que crezca */
+    min-width: 200px; /* Ancho mínimo para cada campo */
+}
+
+#add-category-form label,
+#add-category-form input,
+#add-category-form select {
+    margin-bottom: 0; /* Eliminar margen inferior predeterminado */
+}
+
+#add-category-form button {
+    flex-shrink: 0; /* No se encoge */
+    margin-top: auto; /* Empuja el botón hacia abajo para alinearse con los inputs más largos */
+    padding: 10px 18px; /* Tamaño del botón */
+    font-size: 0.95em;
+}
+
+#current-categories-list {
+    list-style: none;
+    padding: 0;
+}
+
+#current-categories-list li {
+    background-color: #fcfcfc;
+    border: 1px solid #e0e0e0;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+#current-categories-list li span {
+    font-weight: 500;
+    color: #444;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        margin: 10px auto;
+        padding: 15px;
+        border-radius: 0;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .header h1 {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+    }
+
+    nav ul {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 10px;
+    }
+
+    nav ul li {
+        margin: 5px 0;
+        width: 100%;
+        text-align: left;
+    }
+    nav ul li a {
+        display: block; /* Ocupa todo el ancho */
+    }
+
+    #logout-btn {
+        width: 100%;
+        margin-top: 15px;
+    }
+
+    .transaction-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+    }
+
+    .transaction-info {
+        width: 100%;
+        margin-bottom: 10px;
+        margin-right: 0;
+    }
+
+    .transaction-amount {
+        width: 100%;
+        text-align: left;
+        font-size: 1.1em;
+    }
+
+    .transaction-actions {
+        width: 100%;
+        margin-top: 10px;
+        margin-left: 0;
+        justify-content: flex-end; /* Alinea los botones a la derecha */
+    }
+
+    .filter-dates {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-dates input[type="date"],
+    .filter-dates button {
+        width: 100%;
+        margin-bottom: 10px; /* Espacio entre elementos en la pila */
+    }
+    .filter-dates button {
+        margin-left: 0; /* Eliminar auto-margin en móviles */
+    }
+
+    #add-category-form {
+        flex-direction: column;
+        gap: 10px;
+    }
+    #add-category-form > div {
+        min-width: unset; /* Reiniciar min-width */
+        width: 100%;
+    }
+    #add-category-form button {
+        width: 100%;
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.3em;
+    }
+    h2 {
+        font-size: 1.5em;
+    }
+    h3 {
+        font-size: 1.2em;
+    }
+    button, .button-like {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+    input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+    .transaction-item {
+        padding: 10px;
+    }
 }

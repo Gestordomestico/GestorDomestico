@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gestor Doméstico</title>
+    <link rel="stylesheet" href="/gestor_domestico_mvp/public/css/style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Gestor Doméstico</h1>
+        <nav>
+            <ul>
+                <li><a href="/gestor_domestico_mvp/public/dashboard">Dashboard</a></li>
+                </ul>
+        </nav>
+        <button id="logout-btn">Cerrar Sesión</button>
+    </div>
+
+    <div class="container">
+        <div id="dashboard-message"></div>
+
+        <section id="summary-section">
+            <h2>Resumen Financiero</h2>
+            <p><strong>Ingresos Totales:</strong> $<span id="total-income">0.00</span></p>
+            <p><strong>Gastos Totales:</strong> $<span id="total-expense">0.00</span></p>
+            <p><strong>Balance:</strong> $<span id="balance">0.00</span></p>
+
+            <div class="filter-dates">
+                <label for="report-start-date">Desde:</label>
+                <input type="date" id="report-start-date">
+                <label for="report-end-date">Hasta:</label>
+                <input type="date" id="report-end-date">
+                <button id="apply-date-filter">Aplicar Filtro</button>
+            </div>
+        </section>
+
+        <section id="transactions-section">
+            <h2>Mis Transacciones</h2>
+            <form id="add-transaction-form">
+                <h3>Añadir Nueva Transacción</h3>
+                <label for="transaction-type">Tipo:</label>
+                <select id="transaction-type" name="type" required>
+                    <option value="income">Ingreso</option>
+                    <option value="expense">Gasto</option>
+                </select>
+
+                <label for="transaction-category">Categoría:</label>
+                <input type="text" id="transaction-category" name="category" list="categories-datalist" required placeholder="Ej: Salario, Comida">
+                <label for="transaction-amount">Monto:</label>
+                <input type="number" id="transaction-amount" name="amount" step="0.01" min="0.01" max="99999999.99" required placeholder="Ej: 50.00">
+
+                <label for="transaction-description">Descripción (Opcional):</label>
+                <input type="text" id="transaction-description" name="description" maxlength="255" placeholder="Ej: Pago de renta de junio">
+
+                <label for="transaction-date">Fecha:</label>
+                <input type="date" id="transaction-date" name="date" required>
+
+                <button type="submit">Guardar Transacción</button>
+            </form>
+
+            <h3>Lista de Transacciones</h3>
+            <ul id="transactions-list">
+                <li class="info-message">Cargando transacciones...</li>
+            </ul>
+        </section>
+
+        <section id="reports-by-category-section">
+            <h2>Reportes por Categoría</h2>
+            <p class="info-message">Aquí se desglosan tus gastos e ingresos por categoría, para un análisis más detallado.</p>
+            <h3>Gastos por Categoría</h3>
+            <ul id="expenses-by-category-list">
+                <li class="info-message">Cargando...</li>
+            </ul>
+            <h3>Ingresos por Categoría</h3>
+            <ul id="income-by-category-list">
+                <li class="info-message">Cargando...</li>
+            </ul>
+            <div id="category-chart"></div>
+        </section>
+
+        <section id="categories-management-section">
+            <h2>Gestionar Categorías</h2>
+            <form id="add-category-form">
+                <div>
+                    <label for="new-category-name">Nombre de la Categoría:</label>
+                    <input type="text" id="new-category-name" placeholder="Ej: Ropa, Transporte Público" required maxlength="50">
+                </div>
+                <div>
+                    <label for="new-category-type">Tipo:</label>
+                    <select id="new-category-type" required>
+                        <option value="income">Ingreso</option>
+                        <option value="expense">Gasto</option>
+                    </select>
+                </div>
+                <button type="submit">Añadir Nueva Categoría</button>
+            </form>
+
+            <h3>Categorías Existentes</h3>
+            <ul id="current-categories-list">
+                <li class="info-message">Cargando categorías...</li>
+            </ul>
+        </section>
+    </div>
+
+    <script src="/gestor_domestico_mvp/public/js/app.js"></script>
+</body>
+</html>

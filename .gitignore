@@ -1,3 +1,22 @@
+# Ignorar la base de datos SQLite local
+/data/*.sqlite
+
+# Ignorar el archivo init_db.php una vez que ya lo has ejecutado
+# Es crucial que este archivo no sea accesible públicamente después de la instalación inicial
+/init_db.php
+
+# Ignorar logs (si los creas)
+/logs/
+
+# Archivos específicos de Laragon o entornos locales
 .env
-/database/*.sqlite
-/vendor/
+.idea/
+.vscode/
+vendor/  # Si usas Composer y tienes una carpeta vendor
+
+# Otros archivos temporales o de sistema operativo
+.DS_Store
+Thumbs.db
+*.log
+*.temp
+*.tmp

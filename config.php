@@ -1,39 +1,31 @@
 <?php
 // config.php
+// Ubicación: C:\laragon\www\gestor_domestico_mvp\config.php
 
-require_once 'functions.php'; // Incluye las funciones de utilidad
+// Ruta a la base de datos SQLite
+// __DIR__ se refiere al directorio donde está config.php
+define('DB_PATH', __DIR__ . '/database/gestordomestico.sqlite');
 
-// Cargar variables de entorno del archivo .env
-$dotenv_path = __DIR__ . '/.env';
-if (file_exists($dotenv_path)) {
-    $lines = file($dotenv_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
-            list($name, $value) = explode('=', $line, 2);
-            $_ENV[trim($name)] = trim($value);
-            $_SERVER[trim($name)] = trim($value);
-        }
-    }
-}
+// Definir la base URL para la aplicación web
+// Esto es crucial para las rutas en el frontend JavaScript y HTML
+// Ajusta 'gestor_domestico_mvp' si tu carpeta de proyecto tiene otro nombre
+define('BASE_URL', '/gestor_domestico_mvp/public');
 
-// Ruta absoluta al archivo SQLite
-$db_absolute_path = realpath(__DIR__ . '/' . ($_ENV['DB_PATH'] ?? ''));
-
-if (!$db_absolute_path || !file_exists($db_absolute_path)) {
-    error_log("Error: DB_PATH no está definido en .env o el archivo SQLite no existe en " . $db_absolute_path);
-    jsonResponse(['error' => 'Error de configuración de la base de datos. Contacte al administrador.'], 500);
-}
-
+// Configuración de la base de datos (PDO)
+$db = null; // Inicializar a null en caso de error
 try {
-    // Conexión PDO a SQLite
-    $pdo = new PDO('sqlite:' . $db_absolute_path);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO_ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO_FETCH_ASSOC);
+    // Establecer el modo de error de PDO a excepciones para facilitar el manejo de errores
+    $db = new PDO('sqlite:' . DB_PATH);
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Habilitar el soporte de FOREIGN KEY para SQLite
+    $db->exec('PRAGMA foreign_keys = ON;');
 } catch (PDOException $e) {
+    // En un entorno de producción, registrar el error en un archivo de log
+    // y mostrar un mensaje genérico al usuario.
     error_log("Error de conexión a la base de datos: " . $e->getMessage());
-    jsonResponse(['error' => 'No se pudo conectar a la base de datos. Intente de nuevo más tarde.'], 500);
+    // Para depuración, puedes mostrar el error directamente:
+    // die("Error de conexión a la base de datos: " . $e->getMessage());
+    http_response_code(500); // Internal Server Error
+    echo json_encode(['success' => false, 'message' => 'Error interno del servidor. No se pudo conectar a la base de datos.']);
+    exit();
 }
-
-// Iniciar sesión para gestionar autenticación
-startSecureSession();
-?>

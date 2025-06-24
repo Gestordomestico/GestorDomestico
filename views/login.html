@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Gestor Doméstico</title>
+    <link rel="stylesheet" href="/gestor_domestico_mvp/public/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Iniciar Sesión</h2>
+        <div id="auth-message"></div> <form id="login-form">
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+        <p>¿No tienes una cuenta? <a href="/gestor_domestico_mvp/public/register">Regístrate aquí</a></p>
+    </div>
+    <script src="/gestor_domestico_mvp/public/js/auth.js"></script>
+</body>
+</html>

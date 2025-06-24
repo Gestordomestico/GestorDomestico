@@ -1,0 +1,12 @@
+# Activar el motor de reescritura
+RewriteEngine On
+
+# Redirigir la raíz del dominio/subcarpeta a public/index.php
+RewriteRule ^$ index.php [L]
+
+# No reescribir si el archivo o directorio existe
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Reescribir todas las peticiones a index.php
+RewriteRule ^(.*)$ index.php [QSA,L]

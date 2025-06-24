@@ -1,112 +1,129 @@
 // public/js/auth.js
+// Ubicación: C:\laragon\www\gestor_domestico_mvp\public\js\auth.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    const API_AUTH_URL = 'api/auth.php';
+    // IMPORTANTE: Esta URL debe coincidir con la base_path de tu public/index.php y config.php
+    // Asegúrate de que BASE_URL esté definido correctamente en tu config.php
+    const BASE_URL = '/gestor_domestico_mvp/public';
 
-    const showMessage = (element, message, isError = false) => {
-        element.textContent = message;
-        element.className = `alert mt-3 ${isError ? 'alert-danger' : 'alert-success'}`;
-        element.style.display = 'block';
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const authMessageDiv = document.getElementById('auth-message');
+
+    // Función para mostrar mensajes al usuario en los formularios de autenticación
+    function displayMessage(message, type) {
+        if (!authMessageDiv) {
+            console.warn("Elemento 'auth-message' no encontrado.");
+            return;
+        }
+
+        authMessageDiv.textContent = message;
+        authMessageDiv.className = ''; // Limpiar clases anteriores
+
+        if (type === 'success') {
+            authMessageDiv.style.color = 'green';
+            authMessageDiv.style.backgroundColor = '#ddffdd';
+            authMessageDiv.style.border = '1px solid #aaffaa';
+        } else if (type === 'error') {
+            authMessageDiv.style.color = 'red';
+            authMessageDiv.style.backgroundColor = '#ffdddd';
+            authMessageDiv.style.border = '1px solid #ffaaaa';
+        } else {
+            // Estilos por defecto, si los hay, o limpiar
+            authMessageDiv.style.cssText = ''; // Eliminar estilos inline
+        }
+        authMessageDiv.style.opacity = '1'; // Asegurarse de que sea visible
+
         setTimeout(() => {
-            element.style.display = 'none';
-        }, 5000);
-    };
-
-    const registerForm = document.getElementById('registerForm');
-    if (registerForm) {
-        const registerMessage = document.getElementById('registerMessage');
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (password !== confirmPassword) {
-                showMessage(registerMessage, 'Las contraseñas no coinciden.', true);
-                return;
-            }
-            if (password.length < 6) {
-                showMessage(registerMessage, 'La contraseña debe tener al menos 6 caracteres.', true);
-                return;
-            }
-            if (username.length < 3) {
-                showMessage(registerMessage, 'El nombre de usuario debe tener al menos 3 caracteres.', true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_AUTH_URL}?action=register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const result = await response.json();
-
-                if (response.ok) {
-                    showMessage(registerMessage, result.message, false);
-                    registerForm.reset();
-                    setTimeout(() => window.location.href = 'login.html', 2000);
-                } else {
-                    showMessage(registerMessage, result.error || 'Error en el registro.', true);
-                }
-            } catch (error) {
-                console.error('Error de red al registrar:', error);
-                showMessage(registerMessage, 'Error de conexión al servidor.', true);
-            }
-        });
+            authMessageDiv.style.opacity = '0'; // Desvanecer
+            setTimeout(() => {
+                authMessageDiv.textContent = '';
+                authMessageDiv.style.cssText = ''; // Eliminar estilos inline después de desvanecer
+            }, 500); // Esperar a que la transición termine
+        }, 5000); // Mostrar por 5 segundos
     }
 
-    const loginForm = document.getElementById('loginForm');
+    // Comprobar si hay un mensaje de sesión expirada o secuestro al cargar la página de login
+    const sessionMessage = sessionStorage.getItem('login_message');
+    if (sessionMessage) {
+        displayMessage(sessionMessage, 'error');
+        sessionStorage.removeItem('login_message'); // Limpiar el mensaje después de mostrarlo
+    }
+
+
+    // Manejar el formulario de Login
     if (loginForm) {
-        const loginMessage = document.getElementById('loginMessage');
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
+            const username = loginForm.username.value.trim();
+            const password = loginForm.password.value;
+
+            if (!username || !password) {
+                displayMessage('Por favor, ingresa tu usuario y contraseña.', 'error');
+                return;
+            }
 
             try {
-                const response = await fetch(`${API_AUTH_URL}?action=login`, {
+                const response = await fetch(`${BASE_URL}/api/auth`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ action: 'login', username, password })
                 });
-                const result = await response.json();
 
-                if (response.ok) {
-                    showMessage(loginMessage, result.message, false);
-                    localStorage.setItem('loggedInUsername', result.username);
-                    setTimeout(() => window.location.href = 'index.html', 1000);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayMessage(data.message, 'success');
+                    // Redirigir al dashboard después de un inicio de sesión exitoso
+                    window.location.href = `${BASE_URL}/dashboard`;
                 } else {
-                    showMessage(loginMessage, result.error || 'Credenciales inválidas.', true);
+                    // Mostrar errores específicos si la API los devuelve
+                    const errorMessage = data.message + (data.errors ? ' ' + data.errors.join(', ') : '');
+                    displayMessage(errorMessage, 'error');
                 }
             } catch (error) {
-                console.error('Error de red al iniciar sesión:', error);
-                showMessage(loginMessage, 'Error de conexión al servidor.', true);
+                console.error('Error en la solicitud de login:', error);
+                displayMessage('Error de conexión con el servidor. Inténtalo de nuevo más tarde.', 'error');
             }
         });
     }
 
-    const logoutButton = document.getElementById('logoutButton');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', async () => {
-            const confirmLogout = confirm('¿Estás seguro de que quieres cerrar sesión?');
-            if (!confirmLogout) return;
+    // Manejar el formulario de Registro
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = registerForm.username.value.trim();
+            const password = registerForm.password.value;
+
+            if (!username || !password) {
+                displayMessage('Por favor, completa todos los campos para el registro.', 'error');
+                return;
+            }
 
             try {
-                const response = await fetch(`${API_AUTH_URL}?action=logout`, { method: 'GET' });
-                const result = await response.json();
-                if (response.ok) {
-                    alert(result.message);
-                    localStorage.removeItem('loggedInUsername');
-                    window.location.href = 'login.html';
+                const response = await fetch(`${BASE_URL}/api/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'register', username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayMessage(data.message, 'success');
+                    // Limpiar el formulario y animar al usuario a iniciar sesión
+                    registerForm.reset();
+                    // Opcional: Redirigir automáticamente al login después de un tiempo
+                    // setTimeout(() => { window.location.href = `${BASE_URL}/login`; }, 3000);
                 } else {
-                    alert(`Error al cerrar sesión: ${result.error || 'Mensaje desconocido'}`);
+                    const errorMessage = data.message + (data.errors ? ' ' + data.errors.join(', ') : '');
+                    displayMessage(errorMessage, 'error');
                 }
             } catch (error) {
-                console.error('Error de red al cerrar sesión:', error);
-                alert('Error de conexión al servidor.');
+                console.error('Error en la solicitud de registro:', error);
+                displayMessage('Error de conexión con el servidor. Inténtalo de nuevo más tarde.', 'error');
             }
         });
     }

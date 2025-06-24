@@ -1,72 +1,162 @@
 <?php
 // public/api/auth.php
+// Ubicación: C:\laragon\www\gestor_domestico_mvp\public\api\auth.php
 
-require_once '../../config.php';
+// session_start() NO es necesario aquí, ya que public/index.php ya lo hace.
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
+// Asegurarse de que el script fue incluido por index.php y $db existe
+if (!isset($db) || !function_exists('sessionSecurityCheck')) { // Asegurar funciones vitales
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Error interno del servidor: Dependencias no cargadas.']);
     exit();
 }
 
-$action = $_GET['action'] ?? '';
+header('Content-Type: application/json'); // La API siempre devuelve JSON
+
+$method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);
 
-try {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $username = filter_var($input['username'] ?? '', FILTER_SANITIZE_STRING);
-        $password = $input['password'] ?? '';
+$username = $input['username'] ?? '';
+$password = $input['password'] ?? '';
+$action = $input['action'] ?? ''; // Para distinguir entre login/register/logout
 
-        if (empty($username) || empty($password)) {
-            jsonResponse(['error' => 'Usuario y contraseña son requeridos.'], 400);
+$errors = [];
+
+if ($method === 'POST') {
+    if ($action === 'register') {
+        // --- OWASP: Validación de Entrada (Registro) ---
+        // Validación de longitud y formato de usuario
+        $sanitized_username = validateString($username, 50); // Usar función de validación
+        if ($sanitized_username === false || empty($sanitized_username) || strlen($sanitized_username) < 3) {
+            $errors[] = 'El nombre de usuario debe tener entre 3 y 50 caracteres.';
+        }
+        // Expresión regular más estricta: solo letras minúsculas/mayúsculas, números, guion bajo, sin espacios.
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $sanitized_username)) {
+            $errors[] = 'El nombre de usuario solo puede contener letras (A-Z, a-z), números (0-9) y guiones bajos (_).';
         }
 
-        if ($action === 'register') {
-            if (strlen($username) < 3 || strlen($username) > 50) {
-                jsonResponse(['error' => 'El nombre de usuario debe tener entre 3 y 50 caracteres.'], 400);
-            }
-            $hashed_password = hashPassword($password);
+        // Validación de complejidad de contraseña (ya implementada y mejorada)
+        if (empty($password) || strlen($password) < 8) {
+            $errors[] = 'La contraseña debe tener al menos 8 caracteres.';
+        }
+        // Expresión regular para complejidad de contraseña (mínimo 1 mayúscula, 1 minúscula, 1 número, 1 caracter especial)
+        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+            $errors[] = 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&).';
+        }
 
-            $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-            try {
-                $stmt->execute([$username, $hashed_password]);
-                jsonResponse(['message' => 'Usuario registrado con éxito. Ahora puedes iniciar sesión.'], 201);
-            } catch (PDOException $e) {
-                if (strpos($e->getMessage(), 'UNIQUE constraint failed') !== false) {
-                    jsonResponse(['error' => 'El nombre de usuario ya existe.'], 409);
-                } else {
-                    error_log("Error al registrar usuario: " . $e->getMessage());
-                    jsonResponse(['error' => 'Error interno del servidor al registrar usuario.'], 500);
-                }
+        if (!empty($errors)) {
+            http_response_code(400); // Bad Request
+            echo json_encode(['success' => false, 'message' => 'Errores de validación en registro:', 'errors' => $errors]);
+            exit();
+        }
+
+        try {
+            // Comprobar si el nombre de usuario ya existe
+            $stmt = $db->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
+            $stmt->execute([$sanitized_username]);
+            if ($stmt->fetchColumn() > 0) {
+                http_response_code(409); // Conflict
+                echo json_encode(['success' => false, 'message' => 'El nombre de usuario ya existe. Por favor, elige otro.']);
+                exit();
             }
-        } elseif ($action === 'login') {
-            $stmt = $pdo->prepare("SELECT id, username, password FROM users WHERE username = ?");
+
+            // OWASP: Hash Seguro de Contraseña (BCRYPT es fuerte y maneja salting automáticamente)
+            $hashed_password = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+            if ($hashed_password === false) {
+                 throw new Exception("Error al hashear la contraseña.");
+            }
+
+            $stmt = $db->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
+            $stmt->execute([$sanitized_username, $hashed_password]);
+
+            echo json_encode(['success' => true, 'message' => 'Registro exitoso. Ahora puedes iniciar sesión.']);
+
+        } catch (PDOException $e) {
+            http_response_code(500); // Internal Server Error
+            error_log("Error de registro PDO: " . $e->getMessage()); // Registrar en logs
+            echo json_encode(['success' => false, 'message' => 'Error en el registro. Por favor, inténtalo de nuevo más tarde.']);
+        } catch (Exception $e) {
+            http_response_code(500);
+            error_log("Error de registro (hashing): " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error interno del servidor.']);
+        }
+        exit();
+
+    } elseif ($action === 'login') {
+        // --- OWASP: Validación de Entrada (Inicio de Sesión) ---
+        // Se aplican validaciones de longitud mínima/máxima para prevenir ataques de denegación de servicio o manipulación.
+        if (empty($username) || strlen($username) < 3 || strlen($username) > 50) {
+            $errors[] = 'El nombre de usuario es requerido y debe tener entre 3 y 50 caracteres.';
+        }
+        if (empty($password)) {
+            $errors[] = 'La contraseña es requerida.';
+        }
+
+        if (!empty($errors)) {
+            http_response_code(400); // Bad Request
+            echo json_encode(['success' => false, 'message' => 'Errores de validación en login:', 'errors' => $errors]);
+            exit();
+        }
+
+        try {
+            $stmt = $db->prepare("SELECT id, password FROM users WHERE username = ?");
             $stmt->execute([$username]);
-            $user = $stmt->fetch();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($user && verifyPassword($password, $user['password'])) {
+            // OWASP: Protección contra ataques de fuerza bruta y de temporización (password_verify es seguro)
+            // Se usa un mensaje genérico para prevenir enumeración de usuarios.
+            if ($user && password_verify($password, $user['password'])) {
+                // Re-hasheo de contraseña si se usa un algoritmo o costo antiguo (para mantener las contraseñas actualizadas)
+                if (password_needs_rehash($user['password'], PASSWORD_BCRYPT, ['cost' => 12])) {
+                    $new_hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+                    if ($new_hash !== false) {
+                        $update_stmt = $db->prepare("UPDATE users SET password = ? WHERE id = ?");
+                        $update_stmt->execute([$new_hash, $user['id']]);
+                    } else {
+                        error_log("Fallo al re-hashear la contraseña para el usuario ID: " . $user['id']);
+                    }
+                }
+
+                // OWASP: Gestión de Sesiones - Establecer variables de sesión
                 $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                jsonResponse(['message' => 'Inicio de sesión exitoso.', 'username' => $user['username']], 200);
+                $_SESSION['username'] = $username;
+                $_SESSION['LAST_ACTIVITY'] = time(); // Establecer tiempo de última actividad para la expiración
+                $_SESSION['HTTP_USER_AGENT'] = md5($_SERVER['HTTP_USER_AGENT'] ?? ''); // Almacenar hash del agente de usuario para detección de secuestro
+
+                // OWASP: Gestión de Sesiones - Regenerar ID de sesión al iniciar sesión con éxito
+                session_regenerate_id(true);
+
+                echo json_encode(['success' => true, 'message' => 'Inicio de sesión exitoso.']);
             } else {
-                jsonResponse(['error' => 'Credenciales inválidas.'], 401);
+                // OWASP: Prevención de Enumeración - Mensaje de error genérico
+                http_response_code(401); // Unauthorized
+                echo json_encode(['success' => false, 'message' => 'Nombre de usuario o contraseña incorrectos.']);
             }
-        } else {
-            jsonResponse(['error' => 'Acción no válida.'], 400);
+
+        } catch (PDOException $e) {
+            http_response_code(500); // Internal Server Error
+            error_log("Error de login PDO: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error en el inicio de sesión. Por favor, inténtalo de nuevo más tarde.']);
         }
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'logout') {
-        session_unset();
-        session_destroy();
+        exit();
+
+    } elseif ($action === 'logout') {
+        // --- OWASP: Terminación de Sesión ---
+        session_unset();     // Desestablecer todas las variables de sesión
+        session_destroy();   // Destruir la sesión
+        // Borrar la cookie de sesión del navegador
         setcookie(session_name(), '', time() - 3600, '/');
-        jsonResponse(['message' => 'Sesión cerrada con éxito.'], 200);
+
+        echo json_encode(['success' => true, 'message' => 'Sesión cerrada exitosamente.']);
+        exit();
+
     } else {
-        jsonResponse(['error' => 'Método o acción no permitida.'], 405);
+        http_response_code(400); // Bad Request
+        echo json_encode(['success' => false, 'message' => 'Acción no válida.']);
+        exit();
     }
-} catch (Exception $e) {
-    error_log("Error general en auth.php: " . $e->getMessage());
-    jsonResponse(['error' => 'Error del servidor: ' . $e->getMessage()], 500);
+} else {
+    http_response_code(405); // Method Not Allowed
+    echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
+    exit();
 }
-?>

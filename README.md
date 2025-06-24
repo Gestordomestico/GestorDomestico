@@ -108,34 +108,62 @@ Laragon es un excelente entorno de desarrollo local que simplifica la configurac
 
 ## 📂 Estructura del Proyecto
 
-La estructura del proyecto está diseñada para ser clara y modular:
+El proyecto está organizado de manera lógica y modular para facilitar la navegación y el mantenimiento. Aquí un vistazo a su estructura de directorios:
 
 GestorDomestico/
-├── config.php                  # Configuración global de la aplicación (BD, URLs, etc.)
-├── functions.php               # Biblioteca de funciones comunes (seguridad, validaciones, utilidades)
-├── init_db.php                 # Script para la creación inicial de la base de datos (¡eliminar después de uso!)
-├── .gitignore                  # Reglas para Git: qué archivos y directorios ignorar del control de versiones
-├── LICENSE                     # Archivo de licencia del proyecto
-├── README.md                   # Este documento
-├── data/                       # Directorio para la base de datos SQLite (excluido de Git)
-│   └── gestordomestico.sqlite  # Archivo de la base de datos SQLite
-└── public/                     # Contenido públicamente accesible (punto de entrada del servidor web)
-├── index.php               # Front Controller: gestiona todas las solicitudes, el enrutamiento y la sesión.
+├── .gitignore
+├── config.php
+├── functions.php
+├── init_db.php
+├── LICENSE
+├── README.md
+├── data/
+│   └── gestordomestico.sqlite
+└── public/
+├── api/
+│   ├── auth.php
+│   ├── categories.php
+│   ├── reports.php
+│   └── transactions.php
 ├── css/
-│   └── style.css           # Hoja de estilos principal de la aplicación (incluye diseño responsive)
+│   └── style.css
 ├── js/
-│   ├── auth.js             # Lógica JavaScript para las funcionalidades de autenticación (login, registro)
-│   └── app.js              # Lógica JavaScript para la interacción del dashboard (CRUD de transacciones, categorías, reportes)
-└── api/                    # Directorio para las APIs RESTful (endpoints para el frontend)
-├── auth.php            # API para la gestión de usuarios (registro, login, logout)
-├── transactions.php    # API para las operaciones CRUD de transacciones
-├── categories.php      # API para la gestión de categorías
-└── reports.php         # API para generar y recuperar resúmenes financieros
-└── views/                  # Vistas HTML (archivos estáticos o plantillas)
-├── login.html          # Página de inicio de sesión
-├── register.html       # Página de registro de nuevos usuarios
-└── dashboard.html      # El panel de control principal de la aplicación
+│   ├── app.js
+│   └── auth.js
+├── views/
+│   ├── dashboard.html
+│   ├── login.html
+│   └── register.html
+└── index.php
 
+
+**Descripción de los directorios y archivos clave:**
+
+* **`GestorDomestico/`**: La raíz del proyecto.
+    * **`.gitignore`**: Define los archivos y carpetas que Git debe ignorar (ej. la base de datos local).
+    * **`config.php`**: Contiene la configuración global de la aplicación, como la ruta de la base de datos y la URL base.
+    * **`functions.php`**: Archivo con funciones de utilidad generales, incluyendo validaciones de seguridad y manejo de sesiones.
+    * **`init_db.php`**: Script para inicializar la base de datos. **¡Recuerda eliminarlo después de la instalación!**
+    * **`LICENSE`**: El archivo de licencia del proyecto.
+    * **`README.md`**: Este documento, que proporciona información esencial sobre el proyecto.
+    * **`data/`**: Directorio donde se almacena el archivo de la base de datos SQLite.
+        * **`gestordomestico.sqlite`**: La base de datos principal de la aplicación.
+    * **`public/`**: El directorio accesible públicamente por el servidor web. Todo el tráfico web debe dirigirse aquí.
+        * **`index.php`**: El "Front Controller" principal. Centraliza todas las peticiones, gestiona el enrutamiento y el control de sesiones.
+        * **`api/`**: Contiene los endpoints RESTful para la comunicación entre el frontend (JavaScript) y el backend (PHP).
+            * `auth.php`: Gestiona el registro, inicio y cierre de sesión de usuarios.
+            * `categories.php`: Maneja las operaciones de creación, lectura, actualización y eliminación (CRUD) de categorías.
+            * `reports.php`: Proporciona datos para los resúmenes financieros y reportes.
+            * `transactions.php`: Maneja las operaciones CRUD para ingresos y gastos.
+        * **`css/`**: Contiene los archivos de hojas de estilo.
+            * `style.css`: Estilos principales de la interfaz de usuario.
+        * **`js/`**: Contiene los archivos JavaScript para la interactividad del frontend.
+            * `app.js`: Lógica principal del dashboard, incluyendo la gestión de transacciones y categorías.
+            * `auth.js`: Lógica para el manejo del formulario de login y registro.
+        * **`views/`**: Contiene los archivos HTML estáticos o plantillas de la interfaz de usuario.
+            * `dashboard.html`: La vista principal del panel de control del usuario.
+            * `login.html`: La página de inicio de sesión.
+            * `register.html`: La página de registro de nuevos usuarios.
 
 ---
 
